@@ -1,0 +1,50 @@
+{% extends 'adminpanel/base.html' %}
+{% block content %}
+
+<div class="content-wrapper">
+  <div class="card">
+    <div class="card-body">
+      <div class="d-flex justify-content-between">
+        <h4 class="card-title">Categories</h4>
+        <a href="{% url 'adminpanel:category_add' %}" class="btn btn-primary">
+          Add Category
+        </a>
+      </div>
+
+      <div class="table-responsive mt-3">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Category Image</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cat in categories %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>{{ cat.title }}</td>
+              <td>{{ cat.image }}</td>
+              <td>
+                <a href="{% url 'adminpanel:category_edit' cat.id %}" class="btn btn-sm btn-warning">Edit</a>
+                <a href="{% url 'adminpanel:category_delete' cat.id %}"
+                   onclick="return confirm('Delete this category?')"
+                   class="btn btn-sm btn-danger">Delete</a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="3">No categories found</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

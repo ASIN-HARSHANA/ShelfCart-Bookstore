@@ -1,0 +1,44 @@
+{% extends 'adminpanel/base.html' %}
+{% block content %}
+
+<h4 class="mb-4">Products</h4>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>User</th>
+            <th>Title</th>
+            <th>Product image</th>
+            <th>Price</th>
+            <th>Category</th>
+            <th>Vendor</th> 
+            <th>Featured</th> 
+            <th>Product status</th>  
+            <th>Stock</th>
+            <th>pid</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for product in products %}
+        <tr>
+            <td>{{ product.user }}</td>
+            <td>{{ product.title }}</td>
+            <td>{{ product.image }}</td>
+            <td>{{ product.price }}</td>
+            <td>{{ product.category }}</td>
+            <td>{{ product.vendor }}</td>
+            <td>{{ product.featured }}</td>
+            <td>{{ product.product_status }}</td>
+            <td>{{ product.stock_count }}</td>
+            <td>{{ product.pid}}</td>
+            
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5">No products found</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

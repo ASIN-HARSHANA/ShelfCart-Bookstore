@@ -1,0 +1,115 @@
+{% extends "adminpanel/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="content-wrapper">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <h4 class="page-title">Add Vendor</h4>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'adminpanel:vendors' %}">Vendors</a></li>
+        <li class="breadcrumb-item active">Add Vendor</li>
+      </ol>
+    </nav>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-body">
+
+          <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Vendor Title -->
+            <div class="form-group mb-3">
+              <label class="form-label">Vendor Title *</label>
+              {{ form.title }}
+            </div>
+
+            <!-- Vendor Image -->
+            <div class="form-group mb-3">
+              <label class="form-label">Vendor Image *</label>
+              {{ form.image }}
+            </div>
+
+            <!-- Cover Image -->
+            <div class="form-group mb-3">
+              <label class="form-label">Cover Image *</label>
+              {{ form.cover_image }}
+            </div>
+
+            <!-- Address -->
+            <div class="form-group mb-3">
+              <label class="form-label">Address *</label>
+              {{ form.address }}
+            </div>
+
+            <!-- Contact -->
+            <div class="form-group mb-3">
+              <label class="form-label">Contact *</label>
+              {{ form.contact }}
+            </div>
+
+            <!-- User -->
+            <div class="form-group mb-3">
+              <label class="form-label">User *</label>
+              {{ form.user }}
+            </div>
+
+            <!-- Shipping on Time -->
+            <div class="form-group mb-3">
+              <label class="form-label">Shipping on Time *</label>
+              {{ form.shipping_on_time }}
+            </div>
+
+            <!-- Authentic Rating -->
+            <div class="form-group mb-3">
+              <label class="form-label">Authentic Rating *</label>
+              {{ form.authentic_rating }}
+            </div>
+
+            <!-- Days Return -->
+            <div class="form-group mb-3">
+              <label class="form-label">Days Return *</label>
+              {{ form.days_return }}
+            </div>
+
+            <!-- Warranty Period -->
+            <div class="form-group mb-3">
+              <label class="form-label">Warranty Period *</label>
+              {{ form.warranty_period }}
+            </div>
+
+            <!-- Description -->
+            <div class="form-group mb-3">
+              <label class="form-label">Description</label>
+              {{ form.description }}
+            </div>
+
+            <!-- Active Checkbox -->
+            <div class="form-check form-check-flat form-check-primary mb-3">
+              <label class="form-check-label">
+                {{ form.is_active }}
+                Active Vendor
+                <i class="input-helper"></i>
+              </label>
+            </div>
+
+            <!-- Submit Buttons -->
+            <button type="submit" class="btn btn-primary me-2">
+              <i class="mdi mdi-content-save"></i> Save Vendor
+            </button>
+            <a href="{% url 'adminpanel:vendors' %}" class="btn btn-light">Cancel</a>
+
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

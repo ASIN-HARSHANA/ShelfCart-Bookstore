@@ -1,0 +1,237 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    :root {
+        --primary: #00b894;     /* teal/peacock green */
+        --primary-dark: #009578;
+        --accent: #ff9f43;      /* peach/orange accent */
+        --bg-dark: #0f172a;
+        --card-bg: rgba(30, 41, 59, 0.85);
+        --text: #e2e8f0;
+        --input-bg: #1e293b;
+        --input-border: #334155;
+    }
+
+    .main.pages {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        min-height: 100vh;
+        background-attachment: fixed;
+        color: var(--text);
+        font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    .otp-container {
+        max-width: 420px;
+        width: 100%;
+        margin: 60px auto;
+        padding: 40px 30px;
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        border: 1px solid rgba(0,184,148,0.15);
+    }
+
+    .otp-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-align: center;
+        color: white;
+    }
+
+    .otp-subtitle {
+        text-align: center;
+        color: #94a3b8;
+        margin-bottom: 2rem;
+        font-size: 0.95rem;
+    }
+
+    .otp-subtitle strong {
+        color: var(--text);
+    }
+
+    .otp-inputs {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin: 2rem 0;
+    }
+
+    .otp-box {
+        width: 52px;
+        height: 60px;
+        background: var(--input-bg);
+        border: 2px solid var(--input-border);
+        border-radius: 10px;
+        font-size: 1.6rem;
+        font-weight: bold;
+        text-align: center;
+        color: white;
+        transition: all 0.2s;
+    }
+
+    .otp-box:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(0,184,148,0.25);
+    }
+
+    .otp-box.filled {
+        border-color: var(--primary);
+        background: rgba(0,184,148,0.12);
+    }
+
+    .btn-verify {
+        width: 100%;
+        padding: 14px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        background: var(--primary);
+        border: none;
+        border-radius: 50px;
+        color: white;
+        margin: 1.5rem 0 1rem;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .btn-verify:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+
+    .resend {
+        text-align: center;
+        color: #94a3b8;
+        font-size: 0.95rem;
+        margin-top: 1.5rem;
+    }
+
+    .resend a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .resend a:hover {
+        text-decoration: underline;
+    }
+
+    .timer {
+        text-align: center;
+        color: #94a3b8;
+        margin: 1rem 0;
+        font-size: 0.95rem;
+    }
+
+    .timer strong {
+        color: var(--accent);
+    }
+</style>
+
+<main class="main pages">
+    <div class="page-content pt-50 pb-100">
+        <div class="otp-container">
+
+            <h1 class="otp-title">OTP Authentication</h1>
+            
+            <p class="otp-subtitle">
+                We sent a 4-digit OTP to <strong>{{ email }}</strong> <span style="color:#94a3b8">(for development only)</span>
+            </p>
+
+            <p class="timer">
+                Time remaining: <strong id="countdown">1:00</strong>
+            </p>
+
+            <form method="POST" id="otp-form">
+                {% csrf_token %}
+
+                <div class="otp-inputs">
+                    <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" inputmode="numeric" autocomplete="off" required autofocus>
+                    <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" inputmode="numeric" autocomplete="off" required>
+                    <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" inputmode="numeric" autocomplete="off" required>
+                    <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" inputmode="numeric" autocomplete="off" required>
+                </div>
+
+                <!-- Hidden field to combine OTP values for submission -->
+                <input type="hidden" name="otp" id="combined-otp">
+
+                <button href="{% url 'core:index' %}" type="submit" class="btn-verify">Verify</button>
+            </form>
+
+            <div class="resend">
+                Didn't receive an OTP? 
+                <a href="{% url 'userauths:resend-otp' %}" id="resend-link" style="display:none;">Resend</a>
+                <span id="resend-wait">Resend available after timer expires</span>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<script>
+    const inputs = document.querySelectorAll('.otp-box');
+    const form = document.getElementById('otp-form');
+    const combinedOtp = document.getElementById('combined-otp');
+    const countdownEl = document.getElementById('countdown');
+    const resendLink = document.getElementById('resend-link');
+    const resendWait = document.getElementById('resend-wait');
+
+    let timeLeft = {{ remaining_seconds|default:60 }};
+
+    // Timer countdown
+    function updateTimer() {
+        if (timeLeft <= 0) {
+            countdownEl.textContent = 'Expired';
+            resendLink.style.display = 'inline';
+            resendWait.style.display = 'none';
+            return;
+        }
+
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        countdownEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        timeLeft--;
+        setTimeout(updateTimer, 1000);
+    }
+    updateTimer();
+
+    // OTP auto-focus, backspace handling & combine values
+    inputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+            if (e.target.value.length === 1) {
+                if (index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+                input.classList.add('filled');
+            }
+            combinedOtp.value = Array.from(inputs).map(i => i.value).join('');
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                inputs[index - 1].focus();
+            }
+        });
+    });
+
+    // NEW: Auto-fill OTP for development mode (only if otp_for_dev exists)
+    window.addEventListener('load', () => {
+        const devOtp = "{{ otp_for_dev }}";  // This comes from your view context
+        if (devOtp && devOtp.length === 4 && /^[0-9]{4}$/.test(devOtp)) {
+            devOtp.split('').forEach((digit, i) => {
+                inputs[i].value = digit;
+                inputs[i].classList.add('filled');
+            });
+            combinedOtp.value = devOtp;
+            // Optional: focus on first box or submit button
+            inputs[3].focus();
+        }
+    });
+</script>
+
+{% endblock content %}

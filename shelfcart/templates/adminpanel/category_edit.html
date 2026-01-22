@@ -1,0 +1,24 @@
+{% extends 'adminpanel/base.html' %}
+{% block content %}
+
+<div class="content-wrapper">
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title">Edit Category</h4>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label>Category Name</label>
+          <input type="text" name="name" value="{{ category.title }}" class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-2">Update</button>
+        <a href="{% url 'adminpanel:categories' %}" class="btn btn-light mt-2">Cancel</a>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "adminpanel/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="content-wrapper">
+  <div class="card">
+    <div class="card-body">
+
+      <!-- Page Title -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="card-title">Edit Vendor</h4>
+        <a href="{% url 'adminpanel:vendors' %}" class="btn btn-light">Back to Vendors</a>
+      </div>
+
+      <!-- Form -->
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Vendor Name -->
+        <div class="form-group mb-3">
+          <label for="id_name">Vendor Name</label>
+          <input type="text" name="name" id="id_name" value="{{ vendor.name }}"
+                 class="form-control" placeholder="Enter vendor name" required>
+        </div>
+
+        <!-- Vendor Image -->
+        <div class="form-group mb-3">
+          <label>Current Image</label><br>
+          {% if vendor.image %}
+            <img src="{{ vendor.image.url }}" class="img-thumbnail mb-2" width="120">
+          {% endif %}
+          <input type="file" name="image" class="form-control">
+        </div>
+
+        <!-- Vendor Description -->
+        <div class="form-group mb-3">
+          <label for="id_description">Description</label>
+          <textarea name="description" id="id_description" rows="4"
+                    class="form-control" placeholder="Enter description">{{ vendor.description }}</textarea>
+        </div>
+
+        <!-- Vendor Address -->
+        <div class="form-group mb-3">
+          <label for="id_address">Address</label>
+          <input type="text" name="address" id="id_address" value="{{ vendor.address }}"
+                 class="form-control" placeholder="Enter vendor address" required>
+        </div>
+
+        <!-- Vendor Phone / Contact -->
+        <div class="form-group mb-3">
+          <label for="id_phone">Phone</label>
+          <input type="text" name="phone" id="id_phone" value="{{ vendor.phone }}"
+                 class="form-control" placeholder="Enter contact number">
+        </div>
+
+        <!-- Is Active Checkbox -->
+        <div class="form-check mb-3">
+          <input type="checkbox" name="is_active" id="id_is_active"
+                 class="form-check-input" {% if vendor.is_active %}checked{% endif %}>
+          <label class="form-check-label" for="id_is_active">Is Active</label>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="mt-4">
+          <button type="submit" class="btn btn-success">Save Changes</button>
+          <a href="{% url 'adminpanel:vendors' %}" class="btn btn-light ms-2">Cancel</a>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

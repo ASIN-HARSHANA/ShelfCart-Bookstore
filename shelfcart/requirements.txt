@@ -1,0 +1,7 @@
+Django==5.2.3
+django-allauth
+django-taggit
+django-ckeditor
+Pillow
+python-dotenv
+django-jazzmin
