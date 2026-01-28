@@ -40,7 +40,36 @@
                     <section class="product-tabs section-padding position-relative">
                         <div class="section-title style-2">
                             <h3>Popular Products</h3>
-                            <ul class="nav nav-tabs links" id="myTab" role="tablist">
+                            <div class="sort-by-product-area">
+                                <div class="sort-by-cover">
+                                    <div class="sort-by-product-wrap">
+                                        <div class="sort-by">
+                                            <span><i class="fi-rs-apps-sort"></i>Sort by:</span>
+                                        </div>
+                                        <div class="sort-by-dropdown-wrap">
+                                            <span> 
+                                                {% if sort == "price_low" %}Price: Low to High
+                                                {% elif sort == "price_high" %}Price: High to Low
+                                                {% elif sort == "name_az" %}A → Z
+                                                {% elif sort == "name_za" %}Z → A
+                                                {% else %}Default{% endif %}
+                                                <i class="fi-rs-angle-small-down"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="sort-by-dropdown">
+                                        <ul>
+                                            <li><a {% if not sort %}class="active"{% endif %} href="?sort=">Default</a></li>
+                                            <li><a {% if sort == "price_low" %}class="active"{% endif %} href="?sort=price_low">Price: Low to High</a></li>
+                                            <li><a {% if sort == "price_high" %}class="active"{% endif %} href="?sort=price_high">Price: High to Low</a></li>
+                                            <li><a {% if sort == "name_az" %}class="active"{% endif %} href="?sort=name_az">A → Z</a></li>
+                                            <li><a {% if sort == "name_za" %}class="active"{% endif %} href="?sort=name_za">Z → A</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!--<ul class="nav nav-tabs links" id="myTab" role="tablist">
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link active" id="nav-tab-one" data-bs-toggle="tab" data-bs-target="#tab-one" type="button" role="tab" aria-controls="tab-one" aria-selected="true">All</button>
                                 </li>
@@ -62,11 +91,14 @@
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="nav-tab-seven" data-bs-toggle="tab" data-bs-target="#tab-seven" type="button" role="tab" aria-controls="tab-seven" aria-selected="false">Cookbooks and Food</button>
                                 </li>
-                            </ul>
+                            </ul>-->
+                            
                         </div>
+                        
                         <!--End nav-tabs-->
                         <div class="tab-content" id="myTabContent">
                             <div class="tab-pane fade show active" id="tab-one" role="tabpanel" aria-labelledby="tab-one">
+                                
                                 <div class="row product-grid-4">
 
                                     {% for p in products %}
@@ -140,6 +172,38 @@
                                         </div>
                                     </div>
                                     {% endfor %}
+                                    <div class="pagination-area mt-30 mb-50">
+                                        <nav aria-label="Page navigation">
+                                            <ul class="pagination justify-content-center">
+
+                                                {% if page_obj.has_previous %}
+                                                    <li class="page-item">
+                                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">‹</a>
+                                                    </li>
+                                                {% endif %}
+
+                                                {% for num in page_obj.paginator.page_range %}
+                                                    {% if page_obj.number == num %}
+                                                        <li class="page-item active">
+                                                            <span class="page-link">{{ num }}</span>
+                                                        </li>
+                                                    {% else %}
+                                                        <li class="page-item">
+                                                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                                        </li>
+                                                    {% endif %}
+                                                {% endfor %}
+
+                                                {% if page_obj.has_next %}
+                                                    <li class="page-item">
+                                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if sort %}&sort={{ sort }}{% endif %}"><i class="fi-rs-arrow-small-right"></i></a>
+                                                    </li>
+                                                {% endif %}
+
+                                            </ul>
+                                        </nav>
+                                    </div>
+
                                     <!--end product card-->
                                 </div>
                                 <!--End product-grid-4-->

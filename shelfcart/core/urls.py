@@ -18,7 +18,7 @@ urlpatterns = [
 
     # Category
     path("category/", category_list_view, name="category-list"),
-    path("category/<cid>/", category_product_list_view, name="category-product-list"),
+    path("category/<slug:cid>/", category_product_list_view, name="category-product-list"),
 
 
     #vendor

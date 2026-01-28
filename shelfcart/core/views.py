@@ -1,6 +1,6 @@
 from django.shortcuts import render , get_object_or_404,redirect
 from django.http import JsonResponse
-from django.db.models import Count,Avg
+from django.db.models import Count,Avg,Min,Max
 from taggit.models import Tag
 from core.models import *
 from core.forms import *
@@ -12,25 +12,91 @@ import re
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
 from django.urls import reverse
+from django.core.paginator import Paginator
+from django.db.models import Q
 
 
 def index(request):
-    # products = Product.objects.all().order_by("-id")
-    products = Product.objects.filter(product_status="published" , featured=True)
+    products = Product.objects.filter(product_status="published", featured=True)
 
+    # Get sort option from URL
+    sort = request.GET.get("sort")
 
-    context={
-        "products": products
+    if sort == "price_low":
+        products = products.order_by("price")
+
+    elif sort == "price_high":
+        products = products.order_by("-price")
+
+    elif sort == "name_az":
+        products = products.order_by("title")
+
+    elif sort == "name_za":
+        products = products.order_by("-title")
+
+    
+    paginator = Paginator(products, 15)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        "products": page_obj,
+        "page_obj": page_obj,
+        "sort": sort,  
     }
-    return render(request,'core/index.html',context)
+    return render(request, "core/index.html", context)
+
+
 
 def product_list_view(request):
     products = Product.objects.filter(product_status="published")
 
-    context={
-        "products": products
+    # Get filter parameters
+    categories = request.GET.getlist("category[]")
+    vendors = request.GET.getlist("vendor[]")
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    sort = request.GET.get("sort")
+
+    # Apply filters
+    if len(categories) > 0:
+        products = products.filter(category__id__in=categories).distinct()
+    if len(vendors) > 0:
+        products = products.filter(vendor__id__in=vendors).distinct()
+    if min_price:
+        products = products.filter(price__gte=min_price)
+    if max_price:
+        products = products.filter(price__lte=max_price)
+
+    # Apply sorting
+    if sort == "price_low":
+        products = products.order_by("price")
+    elif sort == "price_high":
+        products = products.order_by("-price")
+    elif sort == "name_az":
+        products = products.order_by("title")
+    elif sort == "name_za":
+        products = products.order_by("-title")
+    else:
+        products = products.order_by("-date")
+
+    paginator = Paginator(products, 10)  # 10 products per page
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        "products": page_obj,        
+        "page_obj": page_obj,
+        "sort": sort,
+        "categories": Category.objects.all(),
+        "vendors": Vendor.objects.all(),
+        "min_max_price": Product.objects.aggregate(
+            price__min=Min('price'),
+            price__max=Max('price')
+        ),
     }
-    return render(request,'core/product-list.html',context)
+    return render(request, "core/product-list.html", context)
+
 
 def category_list_view(request):
     # categories = Category.objects.all()
@@ -43,7 +109,8 @@ def category_list_view(request):
        
 
 def category_product_list_view(request, cid):
-    category = Category.objects.get(cid=cid)
+    
+    category = get_object_or_404(Category, cid=cid)
     products = Product.objects.filter(product_status="published", category=category)
 
     context ={
@@ -168,16 +235,85 @@ def ajax_add_review(request,pid):
     )
 
 
-def search_view(request):
-    query = request.GET.get("q")
 
-    products = Product.objects.filter(title__icontains=query).order_by("-date")
+def search_view(request):
+    query = request.GET.get("q", "").strip()
+    sort = request.GET.get("sort")
+    categories = request.GET.getlist("category[]")
+    vendors = request.GET.getlist("vendor[]")
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    
+    products = Product.objects.filter(product_status="published")
+
+    # Apply search filter
+    if query:
+        # Check if query matches a category exactly
+        category_match = products.filter(category__title__iexact=query)
+        
+        if category_match.exists():
+            # If exact category match exists, show only those products
+            products = category_match
+        else:
+            # Check if query matches a tag exactly
+            tag_match = products.filter(tags__name__iexact=query)
+            
+            if tag_match.exists():
+                # If exact tag match exists, show only those products
+                products = tag_match
+            else:
+                # Normal search in title and description only
+                products = products.filter(
+                    Q(title__icontains=query) |
+                    Q(description__icontains=query)
+                ).distinct()
+
+    # Apply filter parameters
+    if len(categories) > 0:
+        products = products.filter(category__id__in=categories).distinct()
+    if len(vendors) > 0:
+        products = products.filter(vendor__id__in=vendors).distinct()
+    if min_price:
+        products = products.filter(price__gte=min_price)
+    if max_price:
+        products = products.filter(price__lte=max_price)
+
+    # Apply sorting
+    if sort == "price_low":
+        products = products.order_by("price")
+    elif sort == "price_high":
+        products = products.order_by("-price")
+    elif sort == "name_az":
+        products = products.order_by("title")
+    elif sort == "name_za":
+        products = products.order_by("-title")
+    else:
+        products = products.order_by("-date")
+
+    # Add pagination
+    paginator = Paginator(products, 10)  # 10 products per page
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    # Get total count before pagination
+    total_count = paginator.count
 
     context = {
-       "products": products,
-       "query": query,
+        "products": page_obj,
+        "page_obj": page_obj,
+        "query": query,
+        "sort": sort,
+        "total_count": total_count,
+        "show_clear_button": bool(query),  # only show clear if there is active search
+        "categories": Category.objects.all(),
+        "vendors": Vendor.objects.all(),
+        "min_max_price": Product.objects.aggregate(
+            price__min=Min('price'),
+            price__max=Max('price')
+        ),
     }
-    return render(request, "core/search.html",context)
+    return render(request, "core/search.html", context)
+
 
 
 def filter_product(request):
@@ -185,18 +321,31 @@ def filter_product(request):
     vendors = request.GET.getlist("vendor[]")
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
+    sort = request.GET.get("sort")
 
-    products = Product.objects.filter(product_status="published").order_by("-id").distinct()
+    products = Product.objects.filter(product_status="published")
 
-    products =products.filter(price__gte=min_price)
-    products =products.filter(price__lte=max_price)
-
-    if len(categories) >0:
+    # Apply filters
+    if len(categories) > 0:
         products = products.filter(category__id__in=categories).distinct()
-    if len(vendors) >0:
+    if len(vendors) > 0:
         products = products.filter(vendor__id__in=vendors).distinct()
-    if min_price and max_price:
-        products = products.filter(price__gte=min_price, price__lte=max_price)
+    if min_price:
+        products = products.filter(price__gte=min_price)
+    if max_price:
+        products = products.filter(price__lte=max_price)
+
+    # Apply sorting
+    if sort == "price_low":
+        products = products.order_by("price")
+    elif sort == "price_high":
+        products = products.order_by("-price")
+    elif sort == "name_az":
+        products = products.order_by("title")
+    elif sort == "name_za":
+        products = products.order_by("-title")
+    else:
+        products = products.order_by("-date")
 
     data = render_to_string('core/async/product-list.html', {'products': products})
     return JsonResponse({'data': data})

@@ -87,6 +87,7 @@ class Vendor(models.Model):
     
     def __str__(self):
         return self.title
+
     
 
 class Product(models.Model):
@@ -149,6 +150,9 @@ class ProductImages(models.Model):
 
     class Meta:
         verbose_name_plural = "Product Images"
+
+
+       
     
 
 

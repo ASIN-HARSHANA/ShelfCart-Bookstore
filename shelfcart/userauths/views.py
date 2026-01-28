@@ -31,26 +31,25 @@ def register_view(request):
     return render(request, "userauths/sign-up.html", context)
 
 def login_view(request):
-    print("Authenticated:", request.user.is_authenticated)
     if request.user.is_authenticated:
-        messages.warning(request, f"Hey you are already Logged In.")
+        messages.warning(request, "You are already logged in.")
         return redirect("core:index")
    
     if request.method == "POST":
-        email = request.POST.get("email")
-        password = request.POST.get("password")
-        try:
-            user = User.objects.get(email=email)
-            user = authenticate(request, email=email, password=password)
-            if user is not None:
-                login(request, user)
-                messages.success(request, "You are logged in.")
-                return redirect("core:index")
+        email = request.POST.get("email", "").strip().lower()
+        password = request.POST.get("password", "")
+
+        user = authenticate(request, username=email, password=password)
+        
+        if user is not None:
+            login(request, user)
+            messages.success(request, "Login successful!")
+            return redirect("core:index")
+        else:
+            if User.objects.filter(email__iexact=email).exists():
+                messages.error(request, "Email exists, but password is incorrect.")
             else:
-                messages.warning(request, "User Does Not Exist, Create an account.")
-        except:
-            messages.warning(request, f"User with {email} does not exist ")
-      
+                messages.error(request, "No account found with this email/username.")
    
     return render(request, "userauths/sign-in.html")
 
@@ -151,3 +150,65 @@ def resend_otp_view(request):
     
     messages.success(request, "New OTP generated (check page in dev mode).")
     return redirect("userauths:verify-otp")
+
+
+def forgot_password_simple(request):
+    if request.user.is_authenticated:
+        messages.info(request, "You are already logged in.")
+        return redirect("core:index")
+
+    if request.method == "POST":
+        email = request.POST.get("email", "").strip().lower()
+
+        if not email:
+            messages.warning(request, "Please enter your email.")
+            return redirect("userauths:forgot-password-simple")
+
+        user = User.objects.filter(email__iexact=email).first()
+
+        if not user:
+            messages.error(request, "No account found with this email.")
+            return redirect("userauths:forgot-password-simple")
+
+        request.session['reset_email'] = email
+        messages.info(request, f"Proceeding to reset password for {email}")
+        return redirect("userauths:reset-password-simple")
+
+    return render(request, "userauths/forgot-password-simple.html")
+
+
+def reset_password_simple(request):
+    if request.user.is_authenticated:
+        messages.info(request, "You are already logged in.")
+        return redirect("core:index")
+
+    email = request.session.get('reset_email')
+
+    if not email:
+        messages.error(request, "Session expired. Please start over from Forgot Password.")
+        return redirect("userauths:forgot-password-simple")
+
+    user = User.objects.filter(email__iexact=email).first()
+    if not user:
+        del request.session['reset_email']
+        messages.error(request, "Account not found. Please try again.")
+        return redirect("userauths:forgot-password-simple")
+
+    if request.method == "POST":
+        password1 = request.POST.get("password1", "")
+        password2 = request.POST.get("password2", "")
+
+        if not password1 or not password2:
+            messages.warning(request, "Both password fields are required.")
+        elif password1 != password2:
+            messages.error(request, "Passwords do not match.")
+        elif len(password1) < 6:
+            messages.error(request, "Password must be at least 6 characters.")
+        else:
+            user.set_password(password1)
+            user.is_active = True  # Activate user during password reset
+            user.save()
+            del request.session['reset_email']
+            messages.success(request, "Password changed successfully! You can now log in.")
+            return redirect("userauths:sign-in")
+    return render(request, "userauths/reset-password-simple.html", {"email": email})

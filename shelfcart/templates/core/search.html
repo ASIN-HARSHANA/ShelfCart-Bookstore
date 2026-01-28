@@ -1,21 +1,70 @@
 {% extends 'partials/base.html' %}
 {% load static %}
 {% block content %}
+    
+    <style>
+        .search-form-wrapper {
+            max-width: 600px;
+        }
 
+        .search-form {
+            position: relative;
+        }
+
+        .search-form input {
+            padding-right: 100px; /* space for button + clear */
+            border-radius: 50px;
+            height: 50px;
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 60px; /* adjust based on clear button width */
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #333;
+            font-size: 1.3rem;
+            padding: 0 15px;
+        }
+
+        .clear-btn {
+            display: inline-flex;
+            align-items: center;
+            color: #666;
+            font-size: 0.95rem;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 30px;
+            background: #f5f5f5;
+            transition: all 0.2s;
+        }
+
+        .clear-btn:hover {
+            background: #e0e0e0;
+            color: #000;
+        }
+
+        .clear-btn i {
+            margin-right: 4px;
+            font-size: 1.1rem;
+        }
+    </style>
     <main class="main">
         <div class="page-header mt-30 mb-50">
             <div class="container">
                 <div class="archive-header">
                     <div class="row align-items-center">
-                        <div class="col-xl-3">
+                        <div class="col-12">
                             {% if query %}
-                            <h1 class="mb-15">{{ query }}</h1>
+                                <h2 class="mb-15 text-center">Results for: <strong>"{{ query }}"</strong></h2>
                             {% else %}
-                            <h3 class="mb-15">No Searched Item</h3>
+                                <h3 class="mb-15 text-center">All Products</h3>
                             {% endif %}
-                            <div class="breadcrumb">
-                                <a href="index.html" rel="nofollow"><i class="fi-rs-home mr-5"></i>Home</a>
-                                <span></span> Shop <span></span> {{category.title}}
+
+                            <div class="totall-product text-center mb-20">
+                                <p>We found <strong class="text-brand">{{ total_count }}</strong> item{% if total_count != 1 %}s{% endif %} for you!</p>
                             </div>
                         </div>
                     </div>
@@ -27,44 +76,33 @@
                 <div class="col-12">
                     <div class="shop-product-fillter">
                         <div class="totall-product">
-                            <p>We found <strong class="text-brand">{{products.count}}</strong> item {{products.count|pluralize}} for you!</p>
+                            <p>We found <strong class="text-brand">{{ total_count }}</strong> item{% if total_count != 1 %}s{% endif %} for you!</p>
                         </div>
                         <div class="sort-by-product-area">
-                            <div class="sort-by-cover mr-10">
-                                <div class="sort-by-product-wrap">
-                                    <div class="sort-by">
-                                        <span><i class="fi-rs-apps"></i>Show:</span>
-                                    </div>
-                                    <div class="sort-by-dropdown-wrap">
-                                        <span> 50 <i class="fi-rs-angle-small-down"></i></span>
-                                    </div>
-                                </div>
-                                <div class="sort-by-dropdown">
-                                    <ul>
-                                        <li><a class="active" href="#">50</a></li>
-                                        <li><a href="#">100</a></li>
-                                        <li><a href="#">150</a></li>
-                                        <li><a href="#">200</a></li>
-                                        <li><a href="#">All</a></li>
-                                    </ul>
-                                </div>
-                            </div>
+                        
                             <div class="sort-by-cover">
                                 <div class="sort-by-product-wrap">
                                     <div class="sort-by">
                                         <span><i class="fi-rs-apps-sort"></i>Sort by:</span>
                                     </div>
                                     <div class="sort-by-dropdown-wrap">
-                                        <span> Featured <i class="fi-rs-angle-small-down"></i></span>
+                                        <span> 
+                                            {% if sort == "price_low" %}Price: Low to High
+                                            {% elif sort == "price_high" %}Price: High to Low
+                                            {% elif sort == "name_az" %}A → Z
+                                            {% elif sort == "name_za" %}Z → A
+                                            {% else %}Default{% endif %}
+                                            <i class="fi-rs-angle-small-down"></i>
+                                        </span>
                                     </div>
                                 </div>
                                 <div class="sort-by-dropdown">
                                     <ul>
-                                        <li><a class="active" href="#">Featured</a></li>
-                                        <li><a href="#">Price: Low to High</a></li>
-                                        <li><a href="#">Price: High to Low</a></li>
-                                        <li><a href="#">Release Date</a></li>
-                                        <li><a href="#">Avg. Rating</a></li>
+                                        <li><a {% if not sort %}class="active"{% endif %} href="?{% if query %}q={{ query }}&{% endif %}sort=">Default</a></li>
+                                        <li><a {% if sort == "price_low" %}class="active"{% endif %} href="?{% if query %}q={{ query }}&{% endif %}sort=price_low">Price: Low to High</a></li>
+                                        <li><a {% if sort == "price_high" %}class="active"{% endif %} href="?{% if query %}q={{ query }}&{% endif %}sort=price_high">Price: High to Low</a></li>
+                                        <li><a {% if sort == "name_az" %}class="active"{% endif %} href="?{% if query %}q={{ query }}&{% endif %}sort=name_az">A → Z</a></li>
+                                        <li><a {% if sort == "name_za" %}class="active"{% endif %} href="?{% if query %}q={{ query }}&{% endif %}sort=name_za">Z → A</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -121,23 +159,33 @@
 
                     </div>
                     <!--product grid-->
+                    {% if page_obj.has_other_pages %}
                     <div class="pagination-area mt-20 mb-20">
                         <nav aria-label="Page navigation example">
                             <ul class="pagination justify-content-start">
+                                {% if page_obj.has_previous %}
                                 <li class="page-item">
-                                    <a class="page-link" href="#"><i class="fi-rs-arrow-small-left"></i></a>
+                                    <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}page={{ page_obj.previous_page_number }}"><i class="fi-rs-arrow-small-left"></i></a>
                                 </li>
-                                <li class="page-item"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item active"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item"><a class="page-link dot" href="#">...</a></li>
-                                <li class="page-item"><a class="page-link" href="#">6</a></li>
+                                {% endif %}
+                                
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                    <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item"><a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}page={{ num }}">{{ num }}</a></li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if page_obj.has_next %}
                                 <li class="page-item">
-                                    <a class="page-link" href="#"><i class="fi-rs-arrow-small-right"></i></a>
+                                    <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}page={{ page_obj.next_page_number }}"><i class="fi-rs-arrow-small-right"></i></a>
                                 </li>
+                                {% endif %}
                             </ul>
                         </nav>
                     </div>
+                    {% endif %}
                     <section class="section-padding pb-5">
                         <div class="section-title">
                             <h3 class="">Deals Of The Day</h3>

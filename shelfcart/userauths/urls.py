@@ -12,4 +12,8 @@ urlpatterns = [
     # Paths for OTP verification and resend
     path("verify-otp/", views.verify_otp_view, name="verify-otp"),
     path("resend-otp/", views.resend_otp_view, name="resend-otp"),
+
+    #forgot password
+    path("forgot-password-simple/", views.forgot_password_simple, name="forgot-password-simple"),
+    path("reset-password-simple/", views.reset_password_simple, name="reset-password-simple"),
 ]

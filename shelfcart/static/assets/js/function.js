@@ -61,8 +61,22 @@ $("#commentForm").submit(function(e){
 
 
 $(document).ready(function (){
+    let currentSort = "";
+
+    // Handle sort clicks
+    $(document).on("click", ".sort-by-dropdown a", function(e){
+        e.preventDefault();
+        currentSort = $(this).data("sort");
+        applyFilters();
+    });
+
+    // Handle filter clicks
     $(".filter-checkbox, #price-filter-btn").on("click", function(){
-        console.log("A Checkbox have been clicked");
+        applyFilters();
+    });
+
+    function applyFilters(){
+        console.log("Applying filters and sort");
 
         let filter_object = {}
 
@@ -71,8 +85,7 @@ $(document).ready(function (){
 
         filter_object.min_price = min_price;
         filter_object.max_price = max_price;
-
-
+        filter_object.sort = currentSort;
 
         $(".filter-checkbox").each(function(){
             let filter_value = $(this).val() 
@@ -100,7 +113,7 @@ $(document).ready(function (){
                 $("#filtered-product").html(response.data)
             }
         })  
-    })
+    }
 
     $("#max_price").on("blur", function(){
 

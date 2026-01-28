@@ -12630,6 +12630,72 @@ footer .hotline img {
     flex: 0 0 auto;
     width: 20%;
 }
+.search-style-2 {
+    position: relative;
+    max-width: 480px;
+    width: 100%;
+}
+
+.search-form {
+    position: relative;
+}
+
+.search-input {
+    width: 100%;
+    height: 46px;
+    padding: 0 90px 0 18px;
+    border: 1px solid #ddd;
+    border-radius: 50px;
+    font-size: 15px;
+    transition: border-color 0.2s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #28a745;
+    box-shadow: 0 0 0 3px rgba(40,167,69,0.1);
+}
+
+/* ─── Common icon button style (same for search & clear) ─── */
+.icon-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #777;
+    font-size: 1.35rem;
+    cursor: pointer;
+    padding: 0 12px;
+    transition: color 0.2s ease, transform 0.15s ease;
+    line-height: 1;
+}
+
+.icon-btn:hover {
+    color: #28a745;           /* same green as your theme */
+    transform: translateY(-50%) scale(1.15);
+}
+
+.icon-btn:active {
+    transform: translateY(-50%) scale(0.98);
+}
+
+/* Search button - rightmost */
+.search-btn {
+    right: 8px;
+}
+
+/* Clear button - left of search button */
+.clear-btn {
+    right: 60px;               /* adjust this value if needed (distance between icons) */
+}
+
+/* Hide clear when input is empty */
+.search-input:placeholder-shown ~ .clear-btn {
+    display: none;
+}
+
+
 
 
 /*# sourceMappingURL=main.css.map */

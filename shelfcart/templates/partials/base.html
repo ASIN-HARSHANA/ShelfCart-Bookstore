@@ -187,28 +187,15 @@
                         <a href="index.html"><img src="{% static 'assets/imgs/theme/logo.png' %}" alt="logo" /></a>
                     </div>
                     <div class="header-right">
-                        <div class="search-style-2">
-                            <form action="{% url 'core:search' %}" method ="GET">
-                                <!--<select class="select-active">
-                                    <option>All Categories</option>
-                                    <option>Fiction</option>
-                                    <option>Non-Fiction</option>
-                                    <option>Children’s Books</option>
-                                    <option>Young Adult</option>
-                                    <option>Academic & Textbooks</option>
-                                    <option>Competitive Exams</option>
-                                    <option>Biographies & Memoirs</option>
-                                    <option>Self-help</option>
-                                    <option>Religious & Spiritual</option>
-                                    <option>Science & Technology</option>
-                                    <option>Business & Finance</option>
-                                    <option>Health & Wellness</option>
-                                    <option>Poetry & Literature</option>
-                                    <option>Comics & Graphic Novels</option>
-                                    <option>Cookbooks</option>
-                                </select>-->
-                                <input type="text" placeholder="Search for items..." name="q" />
-                                <button class="fas fa-search" type="submit"></button>
+                        <div class="search-style-2 position-relative">
+                            <form action="{% url 'core:search' %}" method="GET" class="search-form">
+                                <input type="text" name="q" class="search-input" placeholder="Search for books, authors..." value="{{ request.GET.q|default:'' }}" autocomplete="off"/>
+
+                                {% if request.GET.q %}
+                               <button type="button" class="clear-btn" title="Clear search" onclick="clearSearchInput()"><i style="padding-right:30px;" class="fi-rs-cross"></i></button>
+                                {% endif %}
+
+                                <button type="submit" class="search-btn"><i class="fi-rs-search"></i></button>
                             </form>
                         </div>
                         <div class="header-action-right">
@@ -898,6 +885,15 @@
 <script src="{% static 'assets/js/shop.js' %}"></script>
 <script src="{% static 'assets/js/function.js' %}"></script>
 
+<script>
+function clearSearchInput() {
+    const input = document.querySelector('.search-input');
+    if (input) {
+        input.value = '';
+        window.location.href = "{% url 'core:search' %}";
+    }
+}
+</script>
 
 </body>
 
